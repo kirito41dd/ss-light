@@ -1,0 +1,8 @@
+passwd = "123456"
+method = "aes-256-gcm"
+bind_addr = "0.0.0.0"
+bind_port = 6789
+timeout = 300          # ms
+log_level = "info"     # error warn info debug trace
+console_log = true
+# file_log_dir = "applog/" # if no set, don't log to file
