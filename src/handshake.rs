@@ -1,9 +1,14 @@
 use std::{
     fmt::{self, Formatter},
+    io,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
 };
 
-use tokio::io::{AsyncRead, AsyncReadExt};
+use bytes::BufMut;
+use tokio::{
+    io::{AsyncRead, AsyncReadExt},
+    net::TcpStream,
+};
 
 use crate::consts::*;
 
@@ -62,6 +67,23 @@ impl Address {
         }
     }
 
+    pub fn write_socket_addr_to_buf<B: BufMut>(addr: &SocketAddr, buf: &mut B) {
+        match *addr {
+            SocketAddr::V4(ref addr) => {
+                buf.put_u8(SOCKS5_ADDR_TYPE_IPV4);
+                buf.put_slice(&addr.ip().octets());
+                buf.put_u16(addr.port());
+            }
+            SocketAddr::V6(ref addr) => {
+                buf.put_u8(SOCKS5_ADDR_TYPE_IPV6);
+                for seg in &addr.ip().segments() {
+                    buf.put_u16(*seg);
+                }
+                buf.put_u16(addr.port());
+            }
+        }
+    }
+
     pub fn port(&self) -> u16 {
         match *self {
             Address::SocketAddress(addr) => addr.port(),
@@ -74,6 +96,16 @@ impl Address {
             Address::SocketAddress(ref addr) => addr.ip().to_string(),
             Address::DomainNameAddress(ref domain, ..) => domain.to_owned(),
         }
+    }
+
+    pub async fn connect(&self) -> io::Result<TcpStream> {
+        let stream = match *self {
+            Address::SocketAddress(ref sa) => TcpStream::connect(sa).await?,
+            Address::DomainNameAddress(ref dname, port) => {
+                TcpStream::connect((dname.as_str(), port)).await?
+            }
+        };
+        Ok(stream)
     }
 }
 

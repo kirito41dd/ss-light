@@ -1,9 +1,11 @@
-mod consts;
+pub mod consts;
 pub use self::consts::Error;
 pub mod crypto;
 pub use crypto::kind::CipherKind;
 mod handshake;
 pub use self::handshake::Address;
+pub mod udprelay;
+pub use udprelay::UdpServer;
 pub mod util;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

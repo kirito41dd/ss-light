@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use clap::{Arg, Command};
@@ -24,6 +24,8 @@ pub struct Config {
     #[serde(skip)]
     #[derivative(Debug = "ignore")]
     pub key: Arc<Box<[u8]>>,
+    pub udp_capacity: usize,
+    pub udp_expiry_time: usize,
 }
 
 fn default_level() -> String {
@@ -56,6 +58,15 @@ impl Config {
     }
     pub fn get_method(&self) -> ss_light::CipherKind {
         self.method
+    }
+    pub fn get_timeout(&self) -> Duration {
+        Duration::from_millis(self.timeout as u64)
+    }
+    pub fn get_udp_capacity(&self) -> usize {
+        self.udp_capacity
+    }
+    pub fn get_udp_expiry_time(&self) -> Duration {
+        Duration::from_secs(self.udp_expiry_time as u64)
     }
 }
 

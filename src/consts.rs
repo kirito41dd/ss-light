@@ -1,7 +1,7 @@
 //! Handshake related constants
 //!
 //! Client send proxy request to sever:
-//! ```
+//! ```txt
 //! +------+----------+----------+
 //! | ATYP | DST.ADDR | DST.PORT |
 //! +------+----------+----------+
@@ -30,4 +30,12 @@ pub enum Error {
     InvalidDomainSyntax(#[from] FromUtf8Error),
     #[error("copy error: {1}, {0}")]
     CopyError(io::Error, String),
+    #[error("invalid package")]
+    InvalidPackage,
+    #[error("cipher: {0}")]
+    CipherError(ring::error::Unspecified),
 }
+
+pub const MAXIMUM_UDP_PAYLOAD_SIZE: usize = 65536; // 64k, udp support max size is: 65535- IP_HEAD(20) - UDP_HEAD(8) = 65507
+pub const UDP_KEEP_ALIVE_CHANNEL_SIZE: usize = 64;
+pub const UDP_SEND_CHANNEL_SIZE: usize = 51200;

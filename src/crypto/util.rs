@@ -43,6 +43,16 @@ impl ring::aead::NonceSequence for NonceSequence {
     }
 }
 
+/// Nonce with all zero bytes
+pub struct NonceZeroSequence {}
+const NONCE_ALL_ZERO: [u8; NONCE_LEN] = [0u8; NONCE_LEN];
+/// For ring aead
+impl ring::aead::NonceSequence for NonceZeroSequence {
+    fn advance(&mut self) -> Result<ring::aead::Nonce, ring::error::Unspecified> {
+        Nonce::try_assume_unique_for_key(&NONCE_ALL_ZERO)
+    }
+}
+
 pub fn hkdf_sha1(key: &[u8], salt: &[u8]) -> Vec<u8> {
     const SUBKEY_INFO: &'static [u8] = b"ss-subkey";
     let mut sub_key = Vec::<u8>::from([0u8; 64]);

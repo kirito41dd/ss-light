@@ -1,11 +1,20 @@
 use std::{net::SocketAddr, sync::Arc};
 
-use tokio::net::{TcpListener, TcpStream};
-use tracing::{error, info, trace};
+use tokio::{
+    net::{TcpListener, TcpStream, UdpSocket},
+    time,
+};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::config::Config;
 
 pub async fn run_server(cfg: Arc<Config>) -> anyhow::Result<()> {
+    // run udp
+    let udp_socket = UdpSocket::bind(cfg.get_listen_ip_port()).await?;
+    let cfg_for_udp = cfg.clone();
+    tokio::spawn(async move { run_udp(udp_socket, cfg_for_udp).await });
+
+    // run tcp
     let listener = TcpListener::bind(cfg.get_listen_ip_port()).await?;
     info!("listening on {}", cfg.get_listen_ip_port());
     loop {
@@ -18,51 +27,64 @@ pub async fn run_server(cfg: Arc<Config>) -> anyhow::Result<()> {
 
 async fn process(socket: TcpStream, peer: SocketAddr, cfg: Arc<Config>) {
     let mut ss = ss_light::crypto::Stream::new_from_stream(socket, cfg.get_method(), cfg.get_key());
-    let target_addr = match ss_light::Address::read_from(&mut ss).await {
-        Ok(addr) => addr,
-        Err(e) => {
-            error!(
-                "process peer {}, reading target addr error: {}",
-                peer.ip(),
-                e
+    let target_addr =
+        match time::timeout(cfg.get_timeout(), ss_light::Address::read_from(&mut ss)).await {
+            Ok(ok) => match ok {
+                Ok(addr) => addr,
+                Err(e) => {
+                    error!("proxy peer tcp:{}, reading target addr error: {}", peer, e);
+                    return;
+                }
+            },
+            Err(_) => {
+                warn!("proxy peer tcp:{}, read target addr timeout", peer);
+                return;
+            }
+        };
+
+    let target = match time::timeout(cfg.get_timeout(), target_addr.connect()).await {
+        Ok(ok) => match ok {
+            Ok(s) => s,
+            Err(e) => {
+                error!(
+                    "proxy peer tcp:{}, connect target {} error: {}",
+                    peer, target_addr, e
+                );
+                return;
+            }
+        },
+        Err(_) => {
+            debug!(
+                "proxy peer tcp:{}, connect target {} timeout",
+                peer, target_addr
             );
             return;
         }
     };
-    info!("new proxy {} <-> {}", peer, target_addr);
 
-    let target = {
-        let target = match target_addr {
-            ss_light::Address::SocketAddress(ref sa) => match TcpStream::connect(sa).await {
-                Ok(target) => target,
-                Err(e) => {
-                    error!("failed to connect target {}: {}", target_addr, e);
-                    return;
-                }
-            },
-            ss_light::Address::DomainNameAddress(ref dname, port) => {
-                match TcpStream::connect((dname.as_str(), port)).await {
-                    Ok(target) => target,
-                    Err(e) => {
-                        error!("failed to connect target {}: {}", target_addr, e);
-                        return;
-                    }
-                }
-            }
-        };
-        trace!("success connected to target {}", target_addr);
-        target
-    };
+    info!("established new tcp proxy {} <-> {}", peer, target_addr);
 
     let (a2b, b2a) = match ss_light::util::copy_bidirectional(ss, target).await {
         Ok(result) => result,
         Err(e) => {
-            error!("error when proxy {} <-> {}: {}", peer, target_addr, e);
+            warn!("interrupt tcp proxy {} <-> {}: {}", peer, target_addr, e);
             return;
         }
     };
     info!(
-        "complete proxy {} <-> {}, L2R {} bytes, R2L {} bytes",
+        "complete tcp proxy {} <-> {}, L2R {} bytes, R2L {} bytes",
         peer, target_addr, a2b, b2a
     );
+}
+
+async fn run_udp(socket: UdpSocket, cfg: Arc<Config>) {
+    let udp_server = ss_light::UdpServer::new(
+        socket,
+        cfg.get_method(),
+        cfg.get_key(),
+        cfg.get_udp_capacity(),
+        cfg.get_udp_expiry_time(),
+    );
+
+    udp_server.run().await
 }
