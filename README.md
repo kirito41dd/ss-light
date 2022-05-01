@@ -40,7 +40,7 @@ more usage:
 ## quick start with docker
 start with default config but specify password:
 ```bash
-docker run --rm -it -p 8888:6789/tcp -p 8888:6789/udp ss-light:latest -k passwd123
+docker run --rm -it -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light -k passwd123
 ```
 or start with custom config file:
 1. create new config dir in home then add `config.toml` file:
@@ -63,7 +63,7 @@ or start with custom config file:
     ```
 3. run docker:
     ```bash
-    docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp ss-light:latest
+    docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light
     ```
 
 > tips: use `<ctrl-p><ctrl-q>` exit container but keep it running
