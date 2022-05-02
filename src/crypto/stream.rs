@@ -2,7 +2,6 @@ use std::{ops::DerefMut, pin::Pin};
 
 use rand::Fill;
 use tokio::io::{AsyncRead, AsyncWrite};
-use tracing::trace;
 
 use super::{
     aead::{DecryptedReader, EncryptedWriter},
@@ -20,7 +19,6 @@ impl<S> Stream<S> {
     pub fn new_from_stream(stream: S, kind: CipherKind, key: &[u8]) -> Stream<S> {
         let mut salt = vec![0u8; kind.salt_len()];
         salt.try_fill(&mut rand::thread_rng()).unwrap();
-        trace!("generated AEAD cipher salt {:?}", salt);
         Stream {
             stream,
             kind,
@@ -31,6 +29,10 @@ impl<S> Stream<S> {
 
     pub fn kind(&self) -> CipherKind {
         self.kind
+    }
+
+    pub fn into_inner(self) -> S {
+        self.stream
     }
 }
 

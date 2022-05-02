@@ -1,8 +1,11 @@
-use std::{io::Cursor, net::SocketAddr};
+use std::{
+    io::{self, Cursor},
+    net::SocketAddr,
+};
 
 use bytes::BytesMut;
 use tokio::{
-    io::{copy, AsyncRead, AsyncWrite, AsyncWriteExt},
+    io::{copy, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{ToSocketAddrs, UdpSocket},
 };
 use tracing::error;
@@ -89,4 +92,18 @@ impl PacketCipher {
 
         Ok((payload.len() - pos, peer, target))
     }
+}
+
+pub async fn read_forever<R>(reader: &mut R) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+{
+    static mut READ_FOREVER_BUF: &mut [u8] = &mut [0u8; 1024];
+    loop {
+        let n = unsafe { reader.read(READ_FOREVER_BUF).await? };
+        if n == 0 {
+            break;
+        }
+    }
+    Ok(())
 }

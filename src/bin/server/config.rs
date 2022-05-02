@@ -100,6 +100,12 @@ pub fn add_command_line_args(mut app: Command) -> Command {
                 .long("listen")
                 .takes_value(true)
                 .help("overrid bind_addr in config file"),
+        )
+        .arg(
+            Arg::new("log-level")
+                .long("log-level")
+                .takes_value(true)
+                .help("overrid log level in config file"),
         );
 
     app

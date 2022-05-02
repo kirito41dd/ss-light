@@ -14,7 +14,7 @@ use tokio::{
     task::JoinHandle,
     time,
 };
-use tracing::{debug, error, info, trace, warn};
+use tracing::{debug, error, trace, warn};
 
 use crate::{
     consts::{MAXIMUM_UDP_PAYLOAD_SIZE, UDP_KEEP_ALIVE_CHANNEL_SIZE, UDP_SEND_CHANNEL_SIZE},
@@ -98,7 +98,7 @@ impl UdpServer {
             return worker_handle.try_send_to_worker((target, Bytes::copy_from_slice(data)));
         }
         // create a new worker
-        info!("new udp proxy request {} <-> ...", peer);
+        debug!("new udp proxy request {} <-> ...", peer);
         let woker_handle = UdpTunnelWorkerHandle::new(
             self.socket.clone(),
             self.keepalive_tx.clone(),
@@ -198,7 +198,7 @@ impl UdpTunnelWorker {
                     if let Err(e) = self.send_data_to_target(&target_addr, &data).await {
                         error!("udp proxy {} <-> {}, L2R {} bytes err: {}", self.peer_addr, target_addr, data.len(), e);
                     }
-                    debug!("udp proxy {} <-> {}, L2R {}", self.peer_addr, target_addr, data.len())
+                    debug!("udp proxy {} <-> {}, L2R {} bytes", self.peer_addr, target_addr, data.len())
                 }
 
                 recevied_opt = Self::recv_data_from_target(&self.outbound_ipv4_socket,&mut outbound_ipv4_buffer) => {

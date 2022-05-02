@@ -6,5 +6,5 @@ timeout = 2000         # ms, timeout for tcp proxy handshake and tcp connect
 log_level = "info"     # error warn info debug trace
 console_log = true
 # file_log_dir = "applog/" # if no set, don't log to file
-udp_capacity = 1000   # udp relay worker pool size, one proxy req one worker
-udp_expiry_time = 300 # sec, expiration time for udp relay worker keep alive
+udp_capacity = 1000  # udp relay worker pool size, one proxy req one worker
+udp_expiry_time = 30 # sec, expiration time for udp relay worker keep alive

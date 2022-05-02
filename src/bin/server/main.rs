@@ -62,6 +62,11 @@ fn parse_config(matches: &ArgMatches) -> anyhow::Result<Config> {
     if let Some(port) = matches.value_of("port") {
         config.bind_port = port.parse()?;
     };
+
+    if let Some(log_level) = matches.value_of("log-level") {
+        config.log_level = log_level.into();
+    }
+
     let key = ss_light::util::evp_bytes_to_key(config.passwd.as_bytes(), config.method.key_len());
     config.key = Arc::new(key);
 

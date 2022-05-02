@@ -168,12 +168,11 @@ impl DecryptedReader {
                         return Err(ErrorKind::UnexpectedEof.into()).into();
                     }
                     debug_assert!(self.buf.len() == salt_len);
-                    trace!("got AEAD salt {:?}", &self.buf);
                     self.salt = Some(Bytes::copy_from_slice(&self.buf));
 
                     // cacl sub_key
                     let sub_key = util::hkdf_sha1(&self.key, &self.salt.as_ref().unwrap());
-                    trace!("calc sub_key is {:?}", sub_key);
+                    trace!("peer sub_key is {:?}", sub_key);
 
                     let unbound = UnboundKey::new(&AES_256_GCM, &sub_key)
                         .expect("key.len != algorithm.key_len");

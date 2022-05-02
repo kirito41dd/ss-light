@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::{io::ErrorKind, net::SocketAddr, sync::Arc};
 
 use tokio::{
     net::{TcpListener, TcpStream, UdpSocket},
@@ -27,20 +27,23 @@ pub async fn run_server(cfg: Arc<Config>) -> anyhow::Result<()> {
 
 async fn process(socket: TcpStream, peer: SocketAddr, cfg: Arc<Config>) {
     let mut ss = ss_light::crypto::Stream::new_from_stream(socket, cfg.get_method(), cfg.get_key());
-    let target_addr =
-        match time::timeout(cfg.get_timeout(), ss_light::Address::read_from(&mut ss)).await {
-            Ok(ok) => match ok {
-                Ok(addr) => addr,
-                Err(e) => {
-                    error!("proxy peer tcp:{}, reading target addr error: {}", peer, e);
-                    return;
-                }
-            },
-            Err(_) => {
-                warn!("proxy peer tcp:{}, read target addr timeout", peer);
-                return;
-            }
-        };
+
+    let target_addr = match ss_light::Address::read_from(&mut ss).await {
+        Ok(addr) => addr,
+        Err(ss_light::Error::IoError(ref err)) if err.kind() == ErrorKind::UnexpectedEof => {
+            debug!("proxy peer tcp:{}, read target addr: unexpected eof", peer);
+            return;
+        }
+        Err(e) => {
+            // Defense active detection attack, https://gfw.report/talks/imc20/zh/
+            warn!("proxy peer tcp:{}, reading target addr error: {}, read forever to defense active detection attack", peer, e);
+            let res = ss_light::util::read_forever(&mut ss.into_inner()).await;
+            trace!("read forever peer: {}, closing with {:?}", peer, res);
+            return;
+        }
+    };
+
+    trace!("proxy peer tcp:{}, read target_addr {}", peer, target_addr);
 
     let target = match time::timeout(cfg.get_timeout(), target_addr.connect()).await {
         Ok(ok) => match ok {
