@@ -42,6 +42,10 @@ more usage:
 ```
 
 ## quick start with docker
+> tips: use `<ctrl-p><ctrl-q>` exit container but keep it running
+>
+> v2ray-plugin are recommended
+
 start with default config but specify password:
 ```bash
 docker run --rm -it -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light -k passwd123
@@ -57,7 +61,7 @@ or start with custom config file:
     ```bash
     docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light
     ```
-use plugin:
+use v2ray-plugin: (websocket)
 ```
 docker run --rm -it -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light -k passwd123 --plugin v2ray-plugin --plugin-opts server
 ```
@@ -69,7 +73,6 @@ use other [SIP003](https://shadowsocks.org/en/wiki/Plugin.html) plugins:
     ```
 
 
-> tips: use `<ctrl-p><ctrl-q>` exit container but keep it running
 
 
 
