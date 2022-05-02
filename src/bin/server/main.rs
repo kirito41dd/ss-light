@@ -4,6 +4,7 @@ use clap::{ArgMatches, Command};
 use config::Config;
 use futures::future;
 
+use ss_light::plugin::PluginConfig;
 use tracing::{error, info, metadata::LevelFilter};
 use tracing_subscriber::{
     filter, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, Layer,
@@ -65,6 +66,24 @@ fn parse_config(matches: &ArgMatches) -> anyhow::Result<Config> {
 
     if let Some(log_level) = matches.value_of("log-level") {
         config.log_level = log_level.into();
+    }
+
+    if let Some(plugin) = matches.value_of("plugin") {
+        let plugin_cfg = config.plugin.get_or_insert(PluginConfig {
+            name: "".into(),
+            opts: None,
+            args: vec![],
+        });
+        plugin_cfg.name = plugin.into();
+    }
+
+    if let Some(plugin_opts) = matches.value_of("plugin-opts") {
+        let plugin_cfg = config.plugin.get_or_insert(PluginConfig {
+            name: "".into(),
+            opts: None,
+            args: vec![],
+        });
+        plugin_cfg.opts = Some(plugin_opts.into());
     }
 
     let key = ss_light::util::evp_bytes_to_key(config.passwd.as_bytes(), config.method.key_len());

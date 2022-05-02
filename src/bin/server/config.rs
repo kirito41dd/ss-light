@@ -26,6 +26,7 @@ pub struct Config {
     pub key: Arc<Box<[u8]>>,
     pub udp_capacity: usize,
     pub udp_expiry_time: usize,
+    pub plugin: Option<ss_light::plugin::PluginConfig>,
 }
 
 fn default_level() -> String {
@@ -106,6 +107,18 @@ pub fn add_command_line_args(mut app: Command) -> Command {
                 .long("log-level")
                 .takes_value(true)
                 .help("overrid log level in config file"),
+        )
+        .arg(
+            Arg::new("plugin")
+                .long("plugin")
+                .takes_value(true)
+                .help("overrid plugin name in config file"),
+        )
+        .arg(
+            Arg::new("plugin-opts")
+                .long("plugin-opts")
+                .takes_value(true)
+                .help("overrid plugin opts in config file"),
         );
 
     app

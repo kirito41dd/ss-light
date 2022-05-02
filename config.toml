@@ -8,3 +8,7 @@ console_log = true
 # file_log_dir = "applog/" # if no set, don't log to file
 udp_capacity = 1000  # udp relay worker pool size, one proxy req one worker
 udp_expiry_time = 30 # sec, expiration time for udp relay worker keep alive
+# [plugin]
+# name = "v2ray-plugin"
+# opts = "server"
+# args = []

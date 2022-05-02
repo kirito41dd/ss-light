@@ -18,12 +18,16 @@ passwd = "123456"
 method = "aes-256-gcm"
 bind_addr = "0.0.0.0"
 bind_port = 6789
-timeout = 2000
-log_level = "info"
+timeout = 2000         # ms, timeout for tcp proxy handshake and tcp connect
+log_level = "info"     # error warn info debug trace
 console_log = true
-# file_log_dir = "applog/"
-udp_capacity = 1000
-udp_expiry_time = 300
+# file_log_dir = "applog/" # if no set, don't log to file
+udp_capacity = 1000  # udp relay worker pool size, one proxy req one worker
+udp_expiry_time = 30 # sec, expiration time for udp relay worker keep alive
+# [plugin]
+# name = "v2ray-plugin"
+# opts = "server"
+# args = []
 ```
 
 or override config with: 
@@ -48,23 +52,22 @@ or start with custom config file:
     mkdir $HOME/.ss-light && cd $HOME/.ss-light
     touch config.toml
     ```
-2. edit `config.toml`:
-    ```toml
-    passwd = "123456"
-    method = "aes-256-gcm"
-    bind_addr = "0.0.0.0"
-    bind_port = 6789
-    timeout = 2000         # ms, timeout for tcp proxy handshake and tcp connect
-    log_level = "info"     # error warn info debug trace
-    console_log = true
-    # file_log_dir = "applog/" # if no set, don't log to file
-    udp_capacity = 1000   # udp relay worker pool size, one proxy req one worker
-    udp_expiry_time = 300 # sec, expiration time for udp relay worker keep alive
-    ```
+2. edit `config.toml` like [here](#usage)
 3. run docker:
     ```bash
     docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light
     ```
+use plugin:
+```
+docker run --rm -it -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light -k passwd123 --plugin v2ray-plugin --plugin-opts server
+```
+use other [SIP003](https://shadowsocks.org/en/wiki/Plugin.html) plugins:
+1. lick start with custom config file, download plugin to `$HOME/.ss-light`
+2. start
+    ```
+    docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light --plugin=/app/<your-plugin>
+    ```
+
 
 > tips: use `<ctrl-p><ctrl-q>` exit container but keep it running
 
@@ -75,4 +78,6 @@ or start with custom config file:
     * AES_256_GCM
 * TCP relay
 * UDP relay
+* Plugin
+    * v2ray-plugin
 

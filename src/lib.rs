@@ -6,8 +6,8 @@ mod handshake;
 pub use self::handshake::Address;
 pub mod udprelay;
 pub use udprelay::UdpServer;
+pub mod plugin;
 pub mod util;
-
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(test)]

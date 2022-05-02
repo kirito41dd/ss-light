@@ -11,12 +11,33 @@ use crate::config::Config;
 pub async fn run_server(cfg: Arc<Config>) -> anyhow::Result<()> {
     // run udp
     let udp_socket = UdpSocket::bind(cfg.get_listen_ip_port()).await?;
+    info!("udp server listening on {}", cfg.get_listen_ip_port());
     let cfg_for_udp = cfg.clone();
     tokio::spawn(async move { run_udp(udp_socket, cfg_for_udp).await });
 
+    let mut tcp_listen_ip_port = cfg.get_listen_ip_port();
+    // check plugin
+    if let Some(plugin_cfg) = &cfg.plugin {
+        let p =
+            ss_light::plugin::Plugin::start(plugin_cfg, &cfg.bind_addr, &cfg.bind_port.to_string())
+                .expect("start plugin");
+        tcp_listen_ip_port = p.local_addr().to_string();
+        tokio::spawn(async move {
+            match p.join().await {
+                Ok(status) => {
+                    error!("plugin exited with status: {}", status);
+                }
+                Err(e) => {
+                    error!("plugin exited with error: {}", e);
+                }
+            }
+            std::process::exit(-1)
+        });
+    }
+
     // run tcp
-    let listener = TcpListener::bind(cfg.get_listen_ip_port()).await?;
-    info!("listening on {}", cfg.get_listen_ip_port());
+    let listener = TcpListener::bind(&tcp_listen_ip_port).await?;
+    info!("tcp server listening on {}", tcp_listen_ip_port);
     loop {
         let (socket, peer) = listener.accept().await?;
         trace!("new connetion from {}", peer.to_string());
@@ -65,7 +86,7 @@ async fn process(socket: TcpStream, peer: SocketAddr, cfg: Arc<Config>) {
         }
     };
 
-    info!("established new tcp proxy {} <-> {}", peer, target_addr);
+    debug!("established new tcp proxy {} <-> {}", peer, target_addr);
 
     let (a2b, b2a) = match ss_light::util::copy_bidirectional(ss, target).await {
         Ok(result) => result,
@@ -74,7 +95,7 @@ async fn process(socket: TcpStream, peer: SocketAddr, cfg: Arc<Config>) {
             return;
         }
     };
-    info!(
+    debug!(
         "complete tcp proxy {} <-> {}, L2R {} bytes, R2L {} bytes",
         peer, target_addr, a2b, b2a
     );
