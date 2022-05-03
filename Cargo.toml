@@ -2,6 +2,9 @@
 name = "ss-light"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
+description = "A lightweight shadowsocks implementation."
+repository = "https://github.com/kirito41dd/ss-ligh"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
