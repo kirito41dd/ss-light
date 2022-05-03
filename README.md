@@ -66,7 +66,7 @@ use v2ray-plugin: (websocket)
 docker run --rm -it -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light -k passwd123 --plugin v2ray-plugin --plugin-opts server
 ```
 use other [SIP003](https://shadowsocks.org/en/wiki/Plugin.html) plugins:
-1. lick start with custom config file, download plugin to `$HOME/.ss-light`
+1. like start with custom config file, download plugin to `$HOME/.ss-light`
 2. start
     ```
     docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light --plugin=/app/<your-plugin>
