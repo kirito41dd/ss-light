@@ -1,4 +1,4 @@
-//! SIP003 https://shadowsocks.org/en/wiki/Plugin.html
+//! plugin support. SIP003 [https://shadowsocks.org/en/wiki/Plugin.html](https://shadowsocks.org/en/wiki/Plugin.html)
 use std::{
     io,
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener},

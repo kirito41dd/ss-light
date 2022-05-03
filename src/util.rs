@@ -12,7 +12,7 @@ use tracing::error;
 
 pub use crate::crypto::util::*;
 use crate::Error;
-use crate::{crypto::packet::PacketCipher, Address};
+use crate::{crypto::PacketCipher, Address};
 
 pub async fn copy_bidirectional<SA, SB>(a: SA, b: SB) -> Result<(u64, u64), Error>
 where
