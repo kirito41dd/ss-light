@@ -8,7 +8,6 @@ use tokio::{
     io::{copy, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::{ToSocketAddrs, UdpSocket},
 };
-use tracing::error;
 
 pub use crate::crypto::util::*;
 use crate::Error;
@@ -25,10 +24,7 @@ where
     // b -> a
     let handle = tokio::spawn(async move {
         let rn = copy(&mut br, &mut aw).await;
-        let result = aw.shutdown().await;
-        if let Err(e) = result {
-            error!("shutdown stream a err {}", e);
-        }
+        let _ = aw.shutdown().await;
         let n = match rn {
             Ok(n) => n,
             Err(e) => return Err(Error::CopyError(e, "b -> a".into())),
@@ -38,11 +34,7 @@ where
 
     // a -> b
     let rn = copy(&mut ar, &mut bw).await;
-    let result = bw.shutdown().await;
-    if let Err(e) = result {
-        error!("shutdown stream b err {}", e);
-    }
-
+    let _ = bw.shutdown().await;
     let b2a = handle.await.unwrap()?;
 
     let a2b = match rn {
