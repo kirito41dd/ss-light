@@ -14,34 +14,34 @@ pub enum CipherKind {
 
 impl CipherKind {
     pub fn iv_len(&self) -> usize {
-        return match self {
+        match self {
             CipherKind::None => 0,
             CipherKind::AES_256_GCM => AES_256_GCM.nonce_len(),
-        };
+        }
     }
     pub fn key_len(&self) -> usize {
-        return match self {
+        match self {
             CipherKind::None => 0,
             CipherKind::AES_256_GCM => AES_256_GCM.key_len(),
-        };
+        }
     }
     pub fn salt_len(&self) -> usize {
-        return match self {
+        match self {
             CipherKind::None => 0,
             CipherKind::AES_256_GCM => 32,
-        };
+        }
     }
     pub fn tag_len(&self) -> usize {
-        return match self {
+        match self {
             CipherKind::None => 0,
             CipherKind::AES_256_GCM => AES_256_GCM.tag_len(),
-        };
+        }
     }
     pub fn max_package_size(&self) -> usize {
-        return match self {
+        match self {
             CipherKind::None => usize::MAX,
             CipherKind::AES_256_GCM => 0x3FFF,
-        };
+        }
     }
 }
 

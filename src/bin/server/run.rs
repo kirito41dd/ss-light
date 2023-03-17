@@ -66,7 +66,7 @@ async fn process(socket: TcpStream, peer: SocketAddr, cfg: Arc<Config>) {
 
     trace!("proxy peer tcp:{}, read target_addr {}", peer, target_addr);
 
-    let target = match time::timeout(cfg.get_timeout(), target_addr.connect()).await {
+    let mut target = match time::timeout(cfg.get_timeout(), target_addr.connect()).await {
         Ok(ok) => match ok {
             Ok(s) => s,
             Err(e) => {
@@ -87,8 +87,7 @@ async fn process(socket: TcpStream, peer: SocketAddr, cfg: Arc<Config>) {
     };
 
     debug!("established new tcp proxy {} <-> {}", peer, target_addr);
-
-    let (a2b, b2a) = match ss_light::util::copy_bidirectional(ss, target).await {
+    let (a2b, b2a) = match tokio::io::copy_bidirectional(&mut ss, &mut target).await {
         Ok(result) => result,
         Err(e) => {
             warn!("interrupt tcp proxy {} <-> {}: {}", peer, target_addr, e);

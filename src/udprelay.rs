@@ -177,7 +177,7 @@ impl UdpTunnelWorker {
 
         let join_handle = tokio::spawn(async move { woker.run(rx).await });
 
-        return (join_handle, tx);
+        (join_handle, tx)
     }
 
     async fn run(mut self, mut rx: mpsc::Receiver<(Address, Bytes)>) {
