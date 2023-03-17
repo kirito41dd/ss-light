@@ -72,6 +72,32 @@ use other [SIP003](https://shadowsocks.org/en/wiki/Plugin.html) plugins:
     docker run --rm -it -v $HOME/.ss-light:/app -p 8888:6789/tcp -p 8888:6789/udp kirito41dd/ss-light --plugin=/app/<your-plugin>
     ```
 
+## best practice
+
+ss-light + v2ray-plugin + cloudflare DNS
+
+1. `apt -y install python3-certbot-nginx nginx`
+2. `vim /etc/nginx/conf.d/ss.conf`
+    ```
+    server {
+        listen      80;
+        server_name xxx.com;
+
+        location /dog {
+            proxy_pass              http://127.0.0.1:8888;
+            proxy_redirect          off;
+            proxy_http_version      1.1;
+            proxy_set_header        Upgrade $http_upgrade;
+            proxy_set_header        Connection "upgrade";
+            proxy_set_header        Host $http_host;
+        }
+    }
+    ```
+3. `certbot --nginx --agree-tos --no-eff-email --email xxx@gmail.com`
+4. `systemctl restart nginx`
+5. `docker run --restart=always -it -p 127.0.0.1:8888:6789/tcp kirito41dd/ss-light -k passwd123 --plugin v2ray-plugin --plugin-opts "server;path=/dog;loglevel=none"`
+6. setting your cloudflare SSL/TLS option `Full` or `Full (strict)`
+7. use client: `xxx.com 443 passwd123 aes-256-gcm v2ray-plugin websocket xxx.com tsl /dog`
 
 
 
