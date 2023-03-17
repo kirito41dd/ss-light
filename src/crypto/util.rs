@@ -32,7 +32,7 @@ impl NonceSequence {
                 self.nonce[i] = 0;
             }
         }
-        return &self.nonce;
+        &self.nonce
     }
 }
 
@@ -40,6 +40,12 @@ impl NonceSequence {
 impl ring::aead::NonceSequence for NonceSequence {
     fn advance(&mut self) -> Result<ring::aead::Nonce, ring::error::Unspecified> {
         Nonce::try_assume_unique_for_key(self.increment())
+    }
+}
+
+impl Default for NonceSequence {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -54,7 +60,7 @@ impl ring::aead::NonceSequence for NonceZeroSequence {
 }
 
 pub fn hkdf_sha1(key: &[u8], salt: &[u8]) -> Vec<u8> {
-    const SUBKEY_INFO: &'static [u8] = b"ss-subkey";
+    const SUBKEY_INFO: &[u8] = b"ss-subkey";
     let mut sub_key = Vec::<u8>::from([0u8; 64]);
 
     struct CryptoKeyType(usize);
@@ -83,7 +89,7 @@ pub fn evp_bytes_to_key(password: &[u8], key_len: usize) -> Box<[u8]> {
         let mut m = Md5::new();
 
         if let Some(digest) = last {
-            m.update(&digest);
+            m.update(digest);
         }
 
         m.update(password);

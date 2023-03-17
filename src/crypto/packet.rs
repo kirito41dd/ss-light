@@ -46,7 +46,7 @@ impl PacketCipher {
                 Aad::<[u8; 0]>::empty(),
                 &mut send_buf.as_mut()[self.kind.salt_len()..],
             )
-            .map_err(|e| Error::CipherError(e))?;
+            .map_err(Error::CipherError)?;
 
         send_buf.extend_from_slice(tag.as_ref());
 
@@ -66,7 +66,7 @@ impl PacketCipher {
 
         let data = opening_key
             .open_in_place(Aad::<[u8; 0]>::empty(), &mut buf[self.kind.salt_len()..])
-            .map_err(|e| Error::CipherError(e))?;
+            .map_err(Error::CipherError)?;
 
         let data_len = data.len();
         for i in 0..data_len {

@@ -171,7 +171,7 @@ impl DecryptedReader {
                     self.salt = Some(Bytes::copy_from_slice(&self.buf));
 
                     // cacl sub_key
-                    let sub_key = util::hkdf_sha1(&self.key, &self.salt.as_ref().unwrap());
+                    let sub_key = util::hkdf_sha1(&self.key, self.salt.as_ref().unwrap());
                     trace!("peer sub_key is {:?}", sub_key);
 
                     let unbound = UnboundKey::new(&AES_256_GCM, &sub_key)
