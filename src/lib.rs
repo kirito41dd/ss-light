@@ -17,9 +17,9 @@
 //!     let mut ss = Stream::new_from_stream(socket, CipherKind::AES_256_GCM, &key);
 //!
 //!     let target_addr = Address::read_from(&mut ss).await.unwrap();
-//!     let target = target_addr.connect().await.unwrap();
+//!     let mut target = target_addr.connect().await.unwrap();
 //!
-//!     util::copy_bidirectional(ss, target).await;
+//!     tokio::io::copy_bidirectional(&mut ss, &mut target).await;
 //!     Ok(())
 //! }
 //! ```
